@@ -55,3 +55,26 @@ Baltimoe_fit_logistic%>%
 * In Baltimore, MD. Homicides in which the victim is male are significantly less like to be resolved than those in which the victim is female. 
 * The effect of age is statistically significant, but careful data inspections should be conducted before interpreting too deeply.
 
+```{r warning=FALSE}
+# glm for each of the cities in your dataset, and extract the adjusted odds ratio (and CI) for solving homicides 
+allcities_logistic = homicides %>% 
+  nest(data = -city_state) %>% 
+  mutate(
+    models = map(data, ~glm(resolved ~ victim_age + victim_race + victim_sex, data = ., family = binomial())),
+    results = map(models, ~broom::tidy(.x, conf.int = T))) %>% 
+  select(-data, -models) %>% 
+  unnest(results) %>% 
+  mutate(term = fct_inorder(term),
+         OR = exp(estimate),
+         CI_Lower = exp(conf.low),
+         CI_Upper = exp(conf.high)) %>% 
+  filter(term == "victim_sexMale") %>% 
+  select(city_state,term, log_OR = estimate, OR, CI_Lower, CI_Upper, p.value)
+
+allcities_logistic %>% 
+  knitr::kable(align = "lrr",
+               col.names = c("City_State","Term","Estimate","OR", "95% CI Lower", "95% CI Upper", "P-value"),
+               digits = 3)
+```
+
+
