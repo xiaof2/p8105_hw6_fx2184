@@ -1,0 +1,17 @@
+---
+title: "p8105_hw6_fx2184"
+author: "Fei"
+date: "2022-12-03"
+output: github_document
+---
+```{r setup, include = FALSE}
+library(tidyverse)
+library(viridis)
+```
+
+
+Problem 2 
+```{r}
+
+```
+
