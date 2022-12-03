@@ -17,7 +17,7 @@ url = "https://raw.githubusercontent.com/washingtonpost/data-homicides/master/ho
 homicides_raw = read_csv(url)
 ```
 
-```{r}
+```{r warning=FALSE}
 # create variable city_state and clean the dataset
 homicides = homicides_raw %>% 
   janitor::clean_names() %>% 
@@ -35,10 +35,12 @@ homicides = homicides_raw %>%
 ```
 
 ```{r}
+## generate glm model, let binary variable resolved as outcome, and age, sex and race as predictors. 
 Baltimoe_fit_logistic = homicides %>% 
     filter(city_state  %in% c("Baltimore, MD")) %>% 
     glm(resolved ~ victim_age + victim_sex +victim_race, data = ., family = binomial()) 
 
+## Table below summaries the coefficients from the model fit
 Baltimoe_fit_logistic%>% 
   broom::tidy(conf.int = T) %>% 
   mutate(OR = exp(estimate),
@@ -48,6 +50,8 @@ Baltimoe_fit_logistic%>%
   knitr::kable(align = "lrr",
                col.names = c("Term","Estimate","OR", "95% CI Lower", "95% CI Upper", "P-value"),
                digits = 3)
-
 ```
+* In Baltimore, MD. Homicides in which the victim is Black are substantially less likely to be resolved that those in which the victim is white.
+* In Baltimore, MD. Homicides in which the victim is male are significantly less like to be resolved than those in which the victim is female. 
+* The effect of age is statistically significant, but careful data inspections should be conducted before interpreting too deeply.
 
