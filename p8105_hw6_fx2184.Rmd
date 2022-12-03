@@ -10,8 +10,23 @@ library(viridis)
 ```
 
 
-Problem 2 
+## Problem 2 Washingtong Post - Homicides 
 ```{r}
+#import the dataset 
+url = "https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv"
+homicides_raw = read_csv(url)
+```
 
+```{r}
+homicides = homicides_raw %>% 
+  janitor::clean_names() %>% 
+  mutate(city_state = str_c(city, state,sep = ", "),
+         resolved = case_when(
+           disposition == "Closed by arrest" ~ "solved",
+           disposition ==  "Open/No arrest" ~ "unsolved",
+           disposition ==  "Closed without arrest" ~ "unsolved"
+         )) %>% 
+  filter(!(city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO","Tulsa, AL")))%>% 
+  filter(victim_race  %in% c("White", "Black"))
 ```
 
