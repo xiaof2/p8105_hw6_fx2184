@@ -7,6 +7,10 @@ output: github_document
 ```{r setup, include = FALSE}
 library(tidyverse)
 library(viridis)
+library(modelr)
+library(purrr)
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
 ```
 
 
@@ -72,9 +76,85 @@ allcities_logistic = homicides %>%
   select(city_state,term, log_OR = estimate, OR, CI_Lower, CI_Upper, p.value)
 
 allcities_logistic %>% 
-  knitr::kable(align = "lrr",
+  knitr::kable(align = "llccc",
                col.names = c("City_State","Term","Estimate","OR", "95% CI Lower", "95% CI Upper", "P-value"),
                digits = 3)
+```
+
+```{r}
+## Create a plot that shows the estimated ORs and CIs for each city
+allcities_logistic%>% 
+   mutate(city_state = fct_reorder(city_state, OR)) %>% 
+  ggplot(aes(x = city_state, y = OR)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin = CI_Lower, ymax = CI_Upper)) +
+  theme(axis.text.x = element_text(angle = 70, hjust = 1)) +
+   labs(
+    title = "Estimated ORs and CIs for Each City ",
+    x = "City, State",
+    y = "Estimated ORs"
+  )
+
+```
+
+* Holding all other variables constant. For most cities, the OR is less than 1 indicates homicides in which the victim is male are significantly less like to be resolved than those in which the victim is female. However, there are some cities' CI interval includes 1(null value), meaning there is no significant difference between homicide cases is male to be resolved compare to female at the level of significance level of 0.05. 
+
+
+## Problem 3
+
+## clean the data 
+```{r}
+birthweight_raw = read_csv("./data/birthweight.csv")
+
+birthweight =   birthweight_raw %>% 
+  janitor::clean_names() %>%
+  mutate(across(.cols = c( frace, malform, mrace, babysex,), as.factor)) %>%
+  mutate(frace = recode(frace, "1" = "White", "2" = "Black", "3" = "Asian", 
+                        "4" = "Puerto Rican", "8" = "Other", "9" = "Unknown"),
+         mrace = recode(mrace, "1" = "White", "2" = "Black", 
+                        "3" = "Asian", "4" = "Puerto Rican", "8" = "Other"),
+         malform = ifelse(malform == "0", "absent","present"),
+         babysex = ifelse(babysex == "1", "male","female"))
+```
+
+* **babysex, frace, malform, and mrace** are categorical variables, and I turned them into factors and also signed the information accroding to the assignment. 
+
+
+## missing value check and summary dataset 
+
+```{r}
+skimr::skim(birthweight)
+```
+
+* No missing value in the data 
+
+## propose a regression model for birthweight 
+
+```{r,warning = FALSE, message = FALSE}
+# stepwise regression 
+mult.fit = lm(bwt ~ ., data = birthweight)
+step(mult.fit, direction = "both", k = 2)
+```
+
+* Using the stepwise regression with  AIC, it determines the best model for birthweight is the one that minimizes the considered information criterion. The resulting model has 11 variables, which are `babysex`, `bhead`, `blength`, `delwt`, `fincome`, `gaweeks`, `mheight`, `mrace`, `parity`, `ppwt` and `smoken`.
+
+```{r, warning=FALSE, message=FALSE}
+model_fit1 = lm(bwt ~ babysex + bhead + blength + delwt + fincome + gaweeks + mheight + mrace + parity + ppwt + smoken, data = birthweight)
+summary(model_fit1)
+```
+
+```{r, warning=FALSE, message=FALSE}
+# explore the collinearity among selected continous variables. 
+fit_variable = birthweight %>%
+  select(bhead, blength, delwt, fincome, gaweeks, mheight, parity, ppwt, smoken) %>% 
+  cor() %>% 
+  pairs()
+```
+
+```{r}
+birthweight %>%
+  select(bhead, blength, delwt, fincome, gaweeks, mheight, parity, ppwt, smoken) %>% 
+  PerformanceAnalytics::chart.Correlation(method = "pearson")
 ```
 
 
