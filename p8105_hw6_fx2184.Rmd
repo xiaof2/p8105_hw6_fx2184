@@ -168,7 +168,7 @@ summary(mult_fit_2)
 multi_fit_3 = lm(bwt ~ babysex + bhead + delwt + gaweeks + mheight + mrace + smoken, data = birthweight)
 summary(multi_fit_3)
 ```
-```{r, warning=FALSE, message=FALSE}}
+```{r, warning=FALSE, message=FALSE}
 # Model using length at birth and gestational age as predictors (main effects only)
 comp_fit_1 = lm(bwt ~ blength + gaweeks, data = birthweight)
 # Model using head circumference, length, sex, and all interactions (including the three-way interaction) between these
