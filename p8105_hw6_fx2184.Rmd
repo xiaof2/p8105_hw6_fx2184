@@ -142,19 +142,36 @@ step(mult.fit, direction = "both", k = 2)
 model_fit1 = lm(bwt ~ babysex + bhead + blength + delwt + fincome + gaweeks + mheight + mrace + parity + ppwt + smoken, data = birthweight)
 summary(model_fit1)
 ```
+* From the table, I could tell the `fincome` has p value >0.05, so it's not significant at level of 0.05 and I will drop this variable. 
 
 ```{r, warning=FALSE, message=FALSE}
 # explore the collinearity among selected continous variables. 
-fit_variable = birthweight %>%
-  select(bhead, blength, delwt, fincome, gaweeks, mheight, parity, ppwt, smoken) %>% 
-  cor() %>% 
-  pairs()
-```
-
-```{r}
 birthweight %>%
   select(bhead, blength, delwt, fincome, gaweeks, mheight, parity, ppwt, smoken) %>% 
   PerformanceAnalytics::chart.Correlation(method = "pearson")
+```
+
+* From the correlation scatter polt, we could conclude there is a potential collinearity between `delwt` and `ppwt` and also between `bhead` and `blength`. 
+* Then, I will remove `ppwt` and `blength` from my model, whose p-values are larger in my model.
+
+```{r, warning=FALSE, message=FALSE}
+mult_fit_2 = lm(bwt ~  babysex + bhead + delwt  + gaweeks + mheight + mrace + parity + smoken,
+              data=birthweight)
+summary(mult_fit_2)
+```
+
+* In this new model, the `parity` has p value = 0.0803 which is higher than 0.05, meanding there is no association between parity and baby birthweight on the level of significance 0.05. So, i will drop `parity` as well. 
+* My final model would be `bwt =  babysex + bhead + delwt  + gaweeks + mheight + mrace + smoken`.
+
+```{r}
+multi_fit_3 = lm(bwt ~ babysex + bhead + delwt + gaweeks + mheight + mrace + smoken, data = birthweight)
+summary(multi_fit_3)
+```
+```{r, warning=FALSE, message=FALSE}}
+# Model using length at birth and gestational age as predictors (main effects only)
+comp_fit_1 = lm(bwt ~ blength + gaweeks, data = birthweight)
+# Model using head circumference, length, sex, and all interactions (including the three-way interaction) between these
+comp_fit_2 = lm(bwt ~ bhead + blength + babysex + bhead * blength + bhead * babysex + blength * babysex + bhead * blength * babysex, data = birthweight)
 ```
 
 
