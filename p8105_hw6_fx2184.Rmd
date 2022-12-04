@@ -10,7 +10,6 @@ library(viridis)
 library(modelr)
 library(purrr)
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
-
 ```
 
 
@@ -163,6 +162,8 @@ summary(mult_fit_2)
 * In this new model, the `parity` has p value = 0.0803 which is higher than 0.05, meanding there is no association between parity and baby birthweight on the level of significance 0.05. So, i will drop `parity` as well. 
 * My final model would be `bwt =  babysex + bhead + delwt  + gaweeks + mheight + mrace + smoken`.
 
+## Model Comparision
+
 ```{r}
 multi_fit_3 = lm(bwt ~ babysex + bhead + delwt + gaweeks + mheight + mrace + smoken, data = birthweight)
 summary(multi_fit_3)
@@ -172,6 +173,37 @@ summary(multi_fit_3)
 comp_fit_1 = lm(bwt ~ blength + gaweeks, data = birthweight)
 # Model using head circumference, length, sex, and all interactions (including the three-way interaction) between these
 comp_fit_2 = lm(bwt ~ bhead + blength + babysex + bhead * blength + bhead * babysex + blength * babysex + bhead * blength * babysex, data = birthweight)
+
+# cross-validation 
+cv_df = crossv_mc(birthweight, 100) %>% 
+  mutate(train = map(train, as_tibble),
+         test = map(test, as_tibble)) %>% 
+ mutate(
+        model_1 = map(train, ~lm(bwt ~ babysex + bhead + delwt + gaweeks + mheight + mrace + smoken, data = as_tibble(.x))),
+        model_2 = map(train, ~lm(bwt ~ blength + gaweeks, data = .x)),
+        model_3 = map(train, ~lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex + bhead*blength*babysex, data = .x))) %>% 
+  mutate(
+    rmse_1 = map2_dbl(model_1, test, ~rmse(model = .x, data = .y)),
+    rmse_2 = map2_dbl(model_2, test, ~rmse(model = .x, data = .y)),
+    rmse_3 = map2_dbl(model_3, test, ~rmse(model = .x, data = .y)))
+# root mean square error in 3 models 
+cv_df %>% 
+    select(starts_with("rmse")) %>% 
+    pivot_longer(
+      everything(),
+      names_to = "model", 
+      values_to = "rmse",
+      names_prefix = "rmse_") %>% 
+    mutate(model = fct_inorder(model)) %>% 
+    ggplot(aes(x = model, y = rmse)) + 
+    geom_boxplot() +
+    labs(
+         title = "Prediction Error Distributions across Models",
+         x = "Models", 
+         y = "Root Mean Square Error")+
+    scale_x_discrete(
+        labels = c("My Model", "Test Model 1", "Test Model 2")) +
+    theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 ```
 
-
+* From this boxplot, the test model 2 has the lowest RMSE, followed by my model and test model 1 has the highest RMSE. Therefore, test model 1 is potentially the best model among these three models, which we could do some futher investgation.
