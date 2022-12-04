@@ -223,6 +223,7 @@ summary(mult_fit_2)
 multi_fit_3 = lm(bwt ~ babysex + bhead + delwt + gaweeks + mheight + mrace + smoken, data = birthweight)
 summary(multi_fit_3)
 ```
+
 ```{r, warning=FALSE, message=FALSE}
 # Model using length at birth and gestational age as predictors (main effects only)
 comp_fit_1 = lm(bwt ~ blength + gaweeks, data = birthweight)
@@ -251,7 +252,7 @@ cv_df %>%
       names_prefix = "rmse_") %>% 
     mutate(model = fct_inorder(model)) %>% 
     ggplot(aes(x = model, y = rmse)) + 
-    geom_boxplot() +
+    geom_violin() +
     labs(
          title = "Prediction Error Distributions across Models",
          x = "Models", 
@@ -261,4 +262,4 @@ cv_df %>%
     theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 ```
 
-* From this boxplot, the test model 2 has the lowest RMSE, followed by my model and test model 1 has the highest RMSE. Therefore, test model 1 is potentially the best model among these three models, which we could do some further investigation.
+* From this plot, the test model 2 has the lowest RMSE, followed by my model and test model 1 has the highest RMSE. Therefore, test model 1 is potentially the best model among these three models, which we could do some further investigation.
