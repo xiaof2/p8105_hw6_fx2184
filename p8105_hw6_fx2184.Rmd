@@ -68,7 +68,8 @@ The point of this is not to say you should always use the bootstrap -- it's poss
 
 
 ## Problem 2 Washingtong Post - Homicides 
-```{r}
+
+```{r, message = FALSE}
 #import the dataset 
 url = "https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv"
 homicides_raw = read_csv(url)
@@ -104,7 +105,7 @@ Baltimoe_fit_logistic%>%
          CI_Lower = exp(conf.low),
          CI_Upper = exp(conf.high)) %>%
   select(term, log_OR = estimate, OR, CI_Lower, CI_Upper, p.value) %>% 
-  knitr::kable(align = "lrr",
+  knitr::kable(align = "lccc",
                col.names = c("Term","Estimate","OR", "95% CI Lower", "95% CI Upper", "P-value"),
                digits = 3)
 ```
